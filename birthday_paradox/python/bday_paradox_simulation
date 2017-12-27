@@ -1,0 +1,66 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Fri Dec 22 23:38:38 2017
+
+@author: shubhankar
+"""
+
+import pandas as pd
+import matplotlib.pyplot as plt
+import numpy as np
+import random
+plt.style.use('ggplot')
+
+maxTrials = 1000
+maxPeople = 50
+plotStep = 1
+
+df = pd.DataFrame(columns=['trial','people','val'])
+
+for trial in range(plotStep, maxTrials+1):
+    buff = pd.DataFrame()
+    for people in range(plotStep,maxPeople+1):
+        buff = buff.append(pd.DataFrame({'trial':[trial],'people':[people],'val':[np.nan]}), ignore_index=True)
+        samp = [random.randint(1,366) for x in range(people)]
+        if len(set(samp)) == len(samp):
+            buff.at[len(buff.index)-1,'val'] = 0
+        else:
+            buff.at[len(buff.index)-1,'val'] = 1
+        del(samp)
+    df = df.append(buff, ignore_index=True)
+    del(buff)
+    print(str(round(trial/(maxTrials)*100, 2)) + "% Complete")
+df = df.dropna(axis=0, how='any')
+del(maxPeople)
+del(people)
+del(trial)
+
+
+# =============================================================================
+#     x_knots = df['people']
+#     x = list(range(max(df['people'])))
+#     poly_deg = 3
+# =============================================================================
+for n in range(plotStep,maxTrials+1):
+    dfCopy = df.loc[df.trial<=n]
+    dfCopy = dfCopy.groupby(['people'])['val'].mean().to_frame(name='prob').reset_index()
+    plt.bar(dfCopy['people'],
+            dfCopy['prob'],
+            color='blue',
+            edgecolor='none',
+            width=0.5,
+            align='center')
+    plt.suptitle("Birthday Paradox\n")
+    plt.title("Based on "+str(n)+" simulations.")
+    plt.yticks([0.0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0])
+    plt.xlabel("Number of people in room")
+    plt.ylabel("Probability of one or more matching birthdays")
+    plt.savefig("bday_"+str(n)+".png", dpi=120, bbox_inches='tight')
+    plt.cla()
+# =============================================================================
+#         coefs = np.polyfit(x_knots, y_knots, poly_deg)
+#         y_poly = np.polyval(coefs, x)
+#         plt.plot(df['people'], )
+# =============================================================================
+
